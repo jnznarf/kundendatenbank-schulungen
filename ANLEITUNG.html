@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anleitung Kundendatenbank</title>
+<style>
+:root{color-scheme:light;--bg:#f3f4f6;--surface:#fff;--line:#d5d9e0;--fg:#1b2230;--muted:#5d6676;--accent:#e8710a;--note:#fdf0d8;--note-fg:#7a4800;--bad:#fbe3e5;--bad-fg:#9b1c27;--code:#eceef2}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#12151b;--surface:#1a1f28;--line:#2f3845;--fg:#e6e9ef;--muted:#9aa3b2;--accent:#f08a2c;--note:#3a2a10;--note-fg:#f0c27a;--bad:#3d1a1e;--bad-fg:#f5a3aa;--code:#232a35}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",sans-serif}
+.wrap{max-width:780px;margin:0 auto;padding:32px max(16px,env(safe-area-inset-right)) 64px max(16px,env(safe-area-inset-left))}
+h1{font-size:30px;line-height:1.2;margin:0 0 6px;text-wrap:balance}
+.lead{color:var(--muted);margin:0 0 28px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+.step h2{font-size:20px;margin:0 0 4px;display:flex;gap:12px;align-items:baseline}
+.step h2 .n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#1b1206;display:inline-grid;place-items:center;font-size:15px;font-weight:700;transform:translateY(-2px)}
+.step .time{color:var(--muted);font-size:13px;margin:0 0 10px 42px}
+.step ol,.step ul{margin:8px 0;padding-left:22px}
+.step li{margin:4px 0}
+.step li::marker{color:var(--muted)}
+code,kbd{font:14px ui-monospace,"SF Mono",Menlo,monospace;background:var(--code);padding:1px 6px;border-radius:5px;overflow-wrap:anywhere}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow-x:auto;font:13px/1.5 ui-monospace,"SF Mono",Menlo,monospace}
+.note{background:var(--note);color:var(--note-fg);border-radius:8px;padding:10px 14px;margin:12px 0 4px;font-size:15px}
+.warn{background:var(--bad);color:var(--bad-fg);border-radius:8px;padding:10px 14px;margin:12px 0 4px;font-size:15px}
+b.ui{font-weight:600;white-space:nowrap}
+h3{font-size:16px;margin:14px 0 4px}
+a{color:inherit}
+.files{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px}
+.files code{justify-self:start}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Kundendatenbank Schulungen einrichten</h1>
+<p class="lead">Einmalige Einrichtung, etwa 30 Minuten. Danach läuft die App auf allen Macs, iPhones und iPads, synchronisiert in Echtzeit, und mehrere Personen können gleichzeitig arbeiten.</p>
+
+<div class="step">
+  <h2><span class="n">1</span>Supabase-Projekt anlegen (die Datenbank)</h2>
+  <p class="time">ca. 5 Minuten · kostenlos</p>
+  <ol>
+    <li>Öffnen Sie <a href="https://supabase.com/dashboard" target="_blank" rel="noopener">supabase.com/dashboard</a> und registrieren Sie sich (E-Mail und Passwort genügen).</li>
+    <li>Klicken Sie auf <b class="ui">New project</b>.</li>
+    <li><b>Name:</b> z. B. <code>kundendatenbank</code></li>
+    <li><b>Database Password:</b> auf <b class="ui">Generate a password</b> klicken und das Passwort sicher aufbewahren (wird im Alltag nicht gebraucht).</li>
+    <li><b>Region:</b> <b class="ui">Central EU (Frankfurt)</b> wählen. So bleiben die Daten in Deutschland.</li>
+    <li><b class="ui">Create new project</b> klicken und ca. 2 Minuten warten, bis das Projekt bereit ist.</li>
+  </ol>
+  <div class="note"><b>Wichtig zum kostenlosen Tarif:</b> Wird die Datenbank 7 Tage lang gar nicht benutzt, pausiert Supabase das Projekt. Ihre Daten bleiben erhalten, und im Dashboard holen Sie es mit <b class="ui">Restore project</b> zurück. Bei täglicher Nutzung passiert das nicht. Der Tarif <b>Pro</b> (ca. 25 $/Monat) pausiert nie und enthält tägliche Sicherungen.</div>
+</div>
+
+<div class="step">
+  <h2><span class="n">2</span>Tabellen anlegen</h2>
+  <p class="time">ca. 2 Minuten</p>
+  <ol>
+    <li>Links im Menü <b class="ui">SQL Editor</b> öffnen.</li>
+    <li>Die Datei <code>supabase-einrichtung.sql</code> aus diesem Ordner mit TextEdit öffnen, alles markieren (<kbd>⌘A</kbd>) und kopieren (<kbd>⌘C</kbd>).</li>
+    <li>Im SQL Editor einfügen (<kbd>⌘V</kbd>) und unten rechts auf <b class="ui">Run</b> klicken.</li>
+    <li>Unten muss <b>„Success. No rows returned“</b> erscheinen. Fragt Supabase nach einer Bestätigung („destructive operation“), mit <b class="ui">Run this query</b> bestätigen. Das Skript löscht keine Daten.</li>
+  </ol>
+</div>
+
+<div class="step">
+  <h2><span class="n">3</span>Zugang absichern und Benutzer anlegen</h2>
+  <p class="time">ca. 3 Minuten</p>
+  <h3>Fremde Registrierungen abschalten</h3>
+  <ol>
+    <li>Links <b class="ui">Authentication</b> → <b class="ui">Sign In / Providers</b> öffnen.</li>
+    <li><b class="ui">Allow new users to sign up</b> <b>ausschalten</b> und speichern.</li>
+  </ol>
+  <div class="warn">Dieser Schritt ist wichtig. Ohne ihn könnte sich jeder, der die Adresse Ihrer App kennt, ein eigenes Konto anlegen.</div>
+  <h3>Ihren Benutzer anlegen</h3>
+  <ol>
+    <li><b class="ui">Authentication</b> → <b class="ui">Users</b> → <b class="ui">Add user</b> → <b class="ui">Create new user</b>.</li>
+    <li>E-Mail-Adresse und ein sicheres Passwort eintragen und <b class="ui">Auto Confirm User</b> angehakt lassen.</li>
+    <li>Für jede weitere Person (z. B. Mitarbeiter) einen eigenen Benutzer genauso anlegen.</li>
+  </ol>
+</div>
+
+<div class="step">
+  <h2><span class="n">4</span>Verbindungsdaten in die App eintragen</h2>
+  <p class="time">ca. 3 Minuten</p>
+  <ol>
+    <li>In Supabase oben auf <b class="ui">Connect</b> klicken oder links <b class="ui">Project Settings</b> → <b class="ui">API Keys</b> öffnen.</li>
+    <li>Diese zwei Werte kopieren:
+      <ul>
+        <li><b>Project URL</b>, z. B. <code>https://abcdefgh.supabase.co</code> (unter <b class="ui">Project Settings → Data API</b>)</li>
+        <li>den Schlüssel <b>anon public</b> (Reiter <b class="ui">Legacy API Keys</b>, beginnt mit <code>eyJ</code>). Gibt es diesen Reiter nicht, nehmen Sie den <b>Publishable key</b> (beginnt mit <code>sb_publishable_</code>).</li>
+      </ul>
+    </li>
+    <li>Die Datei <code>config.js</code> mit TextEdit öffnen. Falls TextEdit Formatierungen zeigt: Menü <b class="ui">Format → In reinen Text umwandeln</b>.</li>
+    <li>Die beiden Werte zwischen die Anführungszeichen setzen:
+<pre>window.APP_CONFIG = {
+  supabaseUrl: "https://abcdefgh.supabase.co",
+  supabaseAnonKey: "eyJhbGciOi…"
+};</pre></li>
+    <li>Speichern (<kbd>⌘S</kbd>).</li>
+  </ol>
+  <div class="warn">Tragen Sie <b>niemals</b> den Schlüssel <b>service_role</b> bzw. <b>Secret key</b> ein. Der ist geheim. Der anon- bzw. Publishable-Schlüssel ist öffentlich und darf in der Datei stehen: Ohne Anmeldung sieht damit niemand Daten.</div>
+</div>
+
+<div class="step">
+  <h2><span class="n">5</span>App ins Internet stellen (Netlify)</h2>
+  <p class="time">ca. 5 Minuten · kostenlos</p>
+  <ol>
+    <li><a href="https://app.netlify.com/signup" target="_blank" rel="noopener">app.netlify.com/signup</a> öffnen und ein kostenloses Konto anlegen (E-Mail genügt).</li>
+    <li>Dann <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">app.netlify.com/drop</a> öffnen und den <b>ganzen Ordner</b> <code>kundendatenbank-app</code> aus dem Finder in das Feld ziehen.</li>
+    <li>Nach wenigen Sekunden erscheint eine Adresse wie <code>https://zufallsname-123.netlify.app</code>.</li>
+    <li>Optional einen besseren Namen vergeben: <b class="ui">Site configuration</b> → <b class="ui">Change site name</b>, z. B. <code>schulungen-franz</code>. Die Adresse lautet dann <code>https://schulungen-franz.netlify.app</code>.</li>
+  </ol>
+  <h3>Adresse in Supabase eintragen (für „Passwort vergessen“)</h3>
+  <ol>
+    <li>Supabase → <b class="ui">Authentication</b> → <b class="ui">URL Configuration</b>.</li>
+    <li>Bei <b>Site URL</b> Ihre Netlify-Adresse eintragen und speichern.</li>
+  </ol>
+</div>
+
+<div class="step">
+  <h2><span class="n">6</span>Auf Mac, iPhone und iPad installieren</h2>
+  <p class="time">je Gerät ca. 1 Minute</p>
+  <h3>Mac (Safari, ab macOS Sonoma)</h3>
+  <ol>
+    <li>Ihre App-Adresse in Safari öffnen.</li>
+    <li>Menü <b class="ui">Ablage → Zum Dock hinzufügen…</b> → <b class="ui">Hinzufügen</b>.</li>
+    <li>Die App startet nun aus dem Dock bzw. Launchpad in einem eigenen Fenster. Beim ersten Start einmal anmelden.</li>
+  </ol>
+  <p>Mit Chrome oder Edge: in der Adresszeile auf das Installieren-Symbol klicken.</p>
+  <h3>iPhone und iPad (Safari)</h3>
+  <ol>
+    <li>Ihre App-Adresse in Safari öffnen.</li>
+    <li>Auf das <b class="ui">Teilen-Symbol</b> (Quadrat mit Pfeil) tippen → <b class="ui">Zum Home-Bildschirm</b> → <b class="ui">Hinzufügen</b>.</li>
+    <li>Die App vom Home-Bildschirm starten und einmal anmelden. Die Anmeldung bleibt gespeichert.</li>
+  </ol>
+  <div class="note">Die App auf dem Home-Bildschirm bzw. im Dock hat eine eigene Anmeldung, getrennt von Safari. Melden Sie sich daher in der installierten App an, nicht nur im Browser.</div>
+</div>
+
+<div class="step">
+  <h2><span class="n">7</span>Im Alltag</h2>
+  <ul>
+    <li><b>Synchronisation:</b> Änderungen erscheinen auf allen Geräten nach etwa einer Sekunde. Der grüne Punkt neben „Live synchronisiert“ zeigt die Verbindung an.</li>
+    <li><b>Gleichzeitiges Arbeiten:</b> Bearbeiten zwei Personen denselben Termin, warnt die App beim Speichern und fragt, welche Fassung gelten soll. Nichts wird unbemerkt überschrieben.</li>
+    <li><b>Ohne Internet</b> (z. B. beim Kunden im Funkloch): Die App zeigt die zuletzt geladenen Daten zum Nachschlagen an. Ändern geht erst wieder mit Verbindung.</li>
+    <li><b>Datensicherung:</b> Machen Sie regelmäßig, z. B. monatlich, einen <b class="ui">CSV-Export</b>. Die Datei öffnet sich in Excel und Numbers. Im Pro-Tarif sichert Supabase zusätzlich täglich.</li>
+    <li><b>Neue Mitarbeiter:</b> In Supabase unter <b class="ui">Authentication → Users</b> anlegen, wie in Schritt 3. <b>Ausscheidende Mitarbeiter</b> dort löschen.</li>
+    <li><b>Updates der App:</b> Geänderte Dateien in den Ordner legen und den Ordner bei Netlify unter <b class="ui">Deploys</b> erneut in das Feld ziehen. Die Geräte übernehmen das Update beim nächsten Start.</li>
+  </ul>
+</div>
+
+<div class="step">
+  <h2><span class="n">i</span>Datenschutz</h2>
+  <ul>
+    <li>Die Daten liegen in Frankfurt (EU). Supabase bietet einen Auftragsverarbeitungsvertrag (DPA) an: im Dashboard unter <b class="ui">Organization Settings → Legal Documents</b>. Für Kundendaten sollten Sie ihn abschließen.</li>
+    <li>Netlify liefert nur die Programmdateien aus. Ihre Kundendaten laufen nicht über Netlify.</li>
+    <li>Die App lädt keine Schriften oder Skripte von Fremdanbietern wie Google. Alles ist im Ordner enthalten.</li>
+    <li>Beim <b class="ui">Abmelden</b> wird die Lesekopie auf dem Gerät gelöscht.</li>
+  </ul>
+</div>
+
+<div class="step">
+  <h2><span class="n">≡</span>Inhalt des Ordners</h2>
+  <div class="files">
+    <code>index.html</code><span>die App</span>
+    <code>app.js</code><span>Programmlogik</span>
+    <code>config.js</code><span>Ihre Verbindungsdaten (Schritt 4)</span>
+    <code>supabase-einrichtung.sql</code><span>Datenbank-Einrichtung (Schritt 2)</span>
+    <code>sw.js, manifest.webmanifest</code><span>Installation als App und Offline-Start</span>
+    <code>vendor/</code><span>Supabase-Bibliothek (lokal, kein Fremdabruf)</span>
+    <code>icons/</code><span>App-Symbole</span>
+  </div>
+</div>
+</div>
+</body>
+</html>

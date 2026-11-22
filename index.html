@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kundendatenbank Schulungen</title>
+<meta name="description" content="Kunden, Schulungstermine, Berichte, Bescheinigungen und Rechnungen mit offenen ToDos">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Schulungen">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f3f4f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12151b" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+<style>
+/* Systemschriften (SF Pro auf Mac/iPhone/iPad) – keine externen Schriftdienste, DSGVO-freundlich */
+:root{
+  color-scheme:light;
+  --bg:#f3f4f6; --surface:#ffffff; --surface-2:#eceef2; --line:#d5d9e0;
+  --fg:#1b2230; --muted:#5d6676; --accent:#e8710a; --accent-ink:#1b1206;
+  --ok:#1f7a4d; --ok-bg:#e1f2e8; --warn:#9a5b00; --warn-bg:#fdf0d8;
+  --bad:#b4232f; --bad-bg:#fbe3e5; --na:#6b7280; --na-bg:#eceef1;
+  --focus:#2463c4;
+  --f-head:ui-rounded,-apple-system,"SF Pro Display",system-ui,"Segoe UI",sans-serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#12151b; --surface:#1a1f28; --surface-2:#232a35; --line:#2f3845;
+  --fg:#e6e9ef; --muted:#9aa3b2; --accent:#f08a2c; --accent-ink:#1b1206;
+  --ok:#5cc58f; --ok-bg:#163326; --warn:#f0b65a; --warn-bg:#3a2a10;
+  --bad:#f0737c; --bad-bg:#3d1a1e; --na:#9aa3b2; --na-bg:#262c36; --focus:#6ea2ff;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0}
+h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:19px;font-weight:650}
+h3{font-size:16px;font-weight:650}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{font-size:16px} /* verhindert Zoom auf dem iPhone */
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.plate{width:44px;height:30px;background:var(--accent);border:3px solid #111;border-radius:4px;display:grid;grid-template-rows:1fr 1fr;flex:none}
+.plate span{border-bottom:2px solid #111}
+.brand p{margin:0;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--na);display:inline-block}
+.dot.live{background:var(--ok)} .dot.wait{background:var(--warn)} .dot.off{background:var(--bad)}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:13px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 13px;cursor:pointer;font-weight:550;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;min-height:38px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:650}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.small{padding:3px 9px;font-size:13px;min-height:30px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.tabs{display:flex;gap:4px;margin:18px 0 16px;border-bottom:1px solid var(--line);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{border:0;background:none;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:650;font-family:var(--f-head);font-size:16px;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tab .cnt{display:inline-block;min-width:22px;padding:0 6px;margin-left:6px;border-radius:10px;background:var(--surface-2);font-family:var(--f-mono);font-size:12px;color:var(--fg)}
+
+.note{padding:10px 14px;border-radius:var(--r);background:var(--warn-bg);color:var(--warn);margin-bottom:14px}
+.note.bad{background:var(--bad-bg);color:var(--bad)}
+.empty{padding:32px 20px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:var(--r)}
+.empty strong{display:block;color:var(--fg);font-size:15px;margin-bottom:4px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.stat[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.stat .n{font-family:var(--f-mono);font-size:26px;font-weight:500;line-height:1.1}
+.stat .l{color:var(--muted);font-size:13px}
+.stat .od{font-size:12px;color:var(--bad)}
+
+.group{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.group-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:var(--surface-2);flex-wrap:wrap}
+button.link{background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.group-h button.link{font-family:var(--f-head);font-size:17px;font-weight:650}
+button.link:hover{text-decoration:underline}
+.trow{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:8px 14px;padding:10px 14px;border-top:1px solid var(--line);align-items:center}
+.trow:first-of-type{border-top:0}
+.trow .when{font-family:var(--f-mono);font-size:13px}
+.trow .when small{display:block;color:var(--muted);font-size:11px}
+.trow .what{min-width:0}
+.trow .what span{color:var(--muted);font-size:13px}
+.todos{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.todo{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:3px 4px 3px 9px;font-size:13px;background:var(--surface)}
+.todo.over{border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
+.todo button{border:1px solid var(--line);background:var(--surface);border-radius:6px;cursor:pointer;padding:3px 9px;font-size:13px;color:var(--ok);font-weight:700}
+@media (max-width:640px){.trow{grid-template-columns:1fr}.todos{justify-content:flex-start}}
+
+.chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:550;white-space:nowrap}
+.c-offen{background:var(--warn-bg);color:var(--warn)}
+.c-over{background:var(--bad-bg);color:var(--bad)}
+.c-erledigt{background:var(--ok-bg);color:var(--ok)}
+.c-entfaellt{background:var(--na-bg);color:var(--na)}
+.c-geplant{background:var(--surface-2);color:var(--fg)}
+.c-abgesagt{background:var(--na-bg);color:var(--na);text-decoration:line-through}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filters input,.filters select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;min-width:0}
+.filters input[type=search]{flex:1 1 220px}
+.tablebox{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;min-width:860px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:var(--surface-2)}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--surface-2)}
+tbody tr:last-child td{border-bottom:0}
+td .sub{display:block;font-size:12px;color:var(--muted)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.kcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.kcard:hover{border-color:var(--muted)}
+.kcard .meta{color:var(--muted);font-size:13px;display:flex;flex-direction:column;gap:2px;overflow-wrap:anywhere}
+.kcard .foot{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:6px;border-top:1px solid var(--line)}
+
+.overlay{position:fixed;inset:0;background:rgba(10,14,20,.55);display:flex;justify-content:center;align-items:flex-start;
+  padding:calc(env(safe-area-inset-top,0px) + 20px) max(10px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 20px) max(10px,env(safe-area-inset-left,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:20}
+.modal{background:var(--surface);border-radius:14px;width:100%;max-width:760px;border:1px solid var(--line);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.modal-b{padding:16px 18px;display:flex;flex-direction:column;gap:16px}
+.modal-f{display:flex;justify-content:space-between;gap:8px;padding:12px 18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.modal-f .r{display:flex;gap:8px;margin-left:auto}
+.x{border:0;background:none;font-size:26px;line-height:1;cursor:pointer;color:var(--muted);padding:4px 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 12px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field.wide{grid-column:1/-1}
+.field label{font-size:12px;color:var(--muted);font-weight:550}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;width:100%;min-width:0;min-height:40px}
+.field textarea{min-height:70px;resize:vertical}
+fieldset{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px 14px;margin:0;min-width:0}
+legend{font-family:var(--f-head);font-weight:650;font-size:15px;padding:0 6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:5px 11px;cursor:pointer;font-size:13px;font-weight:550;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"][data-v="offen"]{background:var(--warn-bg);color:var(--warn)}
+.seg button[aria-pressed="true"][data-v="erledigt"]{background:var(--ok-bg);color:var(--ok)}
+.seg button[aria-pressed="true"][data-v="entfaellt"]{background:var(--na-bg);color:var(--na)}
+.klist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.klist .trow{cursor:pointer}
+.klist .trow:hover{background:var(--surface-2)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:30;font-weight:550;max-width:calc(100% - 32px)}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:24px 0 10px;flex-wrap:wrap}
+.sec-h p{margin:0;color:var(--muted);font-size:13px}
+.conflict{display:flex;flex-direction:column;gap:8px}
+.conflict .row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Anmeldung / Einrichtung */
+.gate{min-height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;align-items:center;justify-content:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.gate-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.gate-card .brand{margin-bottom:4px}
+.gate-card p{margin:0;color:var(--muted);font-size:14px}
+.gate-card .btn{width:100%}
+@media (prefers-reduced-motion:no-preference){.modal{animation:pop .14s ease-out}@keyframes pop{from{transform:translateY(6px);opacity:.6}}}
+</style>
+</head>
+<body>
+
+<!-- Einrichtung (nur wenn config.js leer ist) -->
+<section class="gate" id="setup" hidden>
+  <form class="gate-card" id="setupForm">
+    <div class="brand"><div class="plate" aria-hidden="true"><span></span><i></i></div><h1>Einrichtung</h1></div>
+    <p>Die Verbindung zur Datenbank ist noch nicht eingetragen. Tragen Sie die Werte am besten in <b>config.js</b> ein (siehe Anleitung, Schritt 4). Alternativ hier nur für dieses Gerät:</p>
+    <div class="field"><label for="su_url">Project URL</label><input id="su_url" type="url" placeholder="https://xxxx.supabase.co" required autocomplete="off"></div>
+    <div class="field"><label for="su_key">anon public Key</label><input id="su_key" type="text" placeholder="eyJ…" required autocomplete="off"></div>
+    <button class="btn primary" type="submit">Verbinden</button>
+  </form>
+</section>
+
+<!-- Anmeldung -->
+<section class="gate" id="login" hidden>
+  <form class="gate-card" id="loginForm">
+    <div class="brand"><div class="plate" aria-hidden="true"><span></span><i></i></div><h1>Kundendatenbank Schulungen</h1></div>
+    <p id="loginMsg">Bitte melden Sie sich an.</p>
+    <div class="field"><label for="li_mail">E-Mail</label><input id="li_mail" type="email" autocomplete="username" required></div>
+    <div class="field" id="pwField"><label for="li_pw">Passwort</label><input id="li_pw" type="password" autocomplete="current-password" required></div>
+    <button class="btn primary" type="submit" id="loginBtn">Anmelden</button>
+    <button class="linkbtn" type="button" id="forgotBtn">Passwort vergessen?</button>
+  </form>
+</section>
+
+<!-- Neues Passwort setzen (nach Link aus E-Mail) -->
+<section class="gate" id="newpw" hidden>
+  <form class="gate-card" id="newpwForm">
+    <div class="brand"><div class="plate" aria-hidden="true"><span></span><i></i></div><h1>Neues Passwort</h1></div>
+    <p>Bitte vergeben Sie ein neues Passwort (mindestens 8 Zeichen).</p>
+    <div class="field"><label for="np_pw">Neues Passwort</label><input id="np_pw" type="password" autocomplete="new-password" minlength="8" required></div>
+    <button class="btn primary" type="submit">Passwort speichern</button>
+  </form>
+</section>
+
+<!-- App -->
+<div class="wrap" id="app" hidden>
+  <header class="top">
+    <div class="brand">
+      <div class="plate" aria-hidden="true"><span></span><i></i></div>
+      <div><h1>Kundendatenbank Schulungen</h1>
+        <p><span class="dot" id="syncDot"></span><span id="syncText">Verbinde …</span> · <span id="userMail"></span> · <button class="linkbtn" type="button" id="logoutBtn">Abmelden</button></p></div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btnExport" type="button">CSV-Export</button>
+      <button class="btn" id="btnNewKunde" type="button">+ Kunde</button>
+      <button class="btn primary" id="btnNewTermin" type="button">+ Termin</button>
+    </div>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-view="todos" type="button">Offene ToDos<span class="cnt" id="cntTodos">0</span></button>
+    <button class="tab" role="tab" data-view="termine" type="button">Termine<span class="cnt" id="cntTermine">0</span></button>
+    <button class="tab" role="tab" data-view="kunden" type="button">Kunden<span class="cnt" id="cntKunden">0</span></button>
+  </nav>
+  <div id="status"></div>
+  <main id="view"><div class="empty"><strong>Daten werden geladen …</strong></div></main>
+</div>
+<div id="modalRoot"></div>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
