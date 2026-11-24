@@ -1,7 +1,7 @@
 // Service Worker: hält die App-Dateien auf dem Gerät vor, damit die App schnell
 // startet und auch ohne Netz geöffnet werden kann. Daten aus Supabase werden hier
 // NICHT zwischengespeichert (das macht die App selbst als Lesekopie).
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = "kundendatenbank-" + VERSION;
 const SHELL = [
   "./", "./index.html", "./app.js", "./config.js", "./manifest.webmanifest",
