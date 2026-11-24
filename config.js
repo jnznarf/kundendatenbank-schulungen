@@ -9,6 +9,6 @@
 // NIEMALS den "service_role"-Schlüssel hier eintragen!
 // =====================================================================
 window.APP_CONFIG = {
-  supabaseUrl: "",
-  supabaseAnonKey: ""
+  supabaseUrl: "https://abcdefgh.supabase.co",
+  supabaseAnonKey: "eyJhbGciOi…"
 };
